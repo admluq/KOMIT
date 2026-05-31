@@ -23,6 +23,9 @@ styleEl.textContent = `
   .kbtn:hover{filter:brightness(1.1);}
   ::-webkit-scrollbar{width:5px;height:5px;}
   ::-webkit-scrollbar-thumb{background:${B.border};border-radius:99px;}
+  .kblock{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;transition:transform 0.08s ease,box-shadow 0.1s ease;}
+  .kblock:hover{box-shadow:0 0 48px rgba(252,163,17,0.45)!important;border-color:${B.amber}!important;}
+  .kblock:active{transform:scale(0.91)!important;}
 `;
 document.head.appendChild(styleEl);
 
@@ -57,6 +60,30 @@ const TICKETS = [
    updates:["27 Mar: Pasukan KOMIT tiba di lokasi.","29 Mar: TNB didesak melalui saluran rasmi.","02 Apr: Bekalan elektrik dipulihkan. Selesai!"]},
 ];
 
+const playBlockSound = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc2.connect(gain2); gain2.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(320, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(75, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc2.type = "square";
+    osc2.frequency.setValueAtTime(640, ctx.currentTime);
+    osc2.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.05);
+    gain2.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.35);
+    osc2.start(ctx.currentTime); osc2.stop(ctx.currentTime + 0.1);
+  } catch(e) {}
+};
+
 let tkCount = 5;
 const anonId = email => {
   let h=0; for(let c of email) h=(h*31+c.charCodeAt(0))&0xffffffff;
@@ -90,6 +117,7 @@ export default function App() {
   const [fSubmit,setFSubmit] = useState(false);
   const [fErr,setFErr] = useState("");
   const [toast,setToast] = useState(null);
+  const [blockHit,setBlockHit] = useState(0);
 
   const showToast = (msg,type="info") => { setToast({msg,type}); setTimeout(()=>setToast(null),3200); };
   const requireAuth = (intent,cb) => {
@@ -478,6 +506,20 @@ export default function App() {
               </div>
             ))}
           </div>
+
+          <div style={{marginTop:36,display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
+            <button
+              className="kblock"
+              style={{background:"rgba(252,163,17,0.1)",border:"2.5px solid rgba(252,163,17,0.55)",borderRadius:14,padding:"20px 64px",fontFamily:F.bebas,fontSize:30,letterSpacing:"0.35em",color:B.amber,boxShadow:"0 4px 32px rgba(252,163,17,0.18)"}}
+              onClick={()=>{playBlockSound();setBlockHit(h=>h+1);}}
+            >
+              🔊 TEKAN!
+            </button>
+            <div style={{fontSize:11,color:"rgba(252,163,17,0.45)",fontFamily:F.dm,letterSpacing:"0.18em",minHeight:18}}>
+              {blockHit>0?`ditekan ${blockHit}×`:""}
+            </div>
+          </div>
+
         </div>
       </div>
 
